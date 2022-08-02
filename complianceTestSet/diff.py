@@ -7,7 +7,7 @@ from distutils.version import StrictVersion
 if StrictVersion(pd.__version__) < StrictVersion("1.1.0"):
   print("This script requires the use of Pandas v1.1.0.")
   sys.exit(1)
-    
+
 # Argument parser
 parser = argparse.ArgumentParser()
 parser.add_argument("csv1", type = str, help="First CSV")
@@ -29,13 +29,13 @@ pd.set_option('display.precision', 5)
 try:
   df = pd.read_csv(args.csv1, low_memory = False, float_precision='high')
 except:
-  print("Failed to read in data from {}. Exiting.".format(args.csv1))
+  print(f"Failed to read in data from {args.csv1}. Exiting.")
   sys.exit(1)
 
 try:
   df2 = pd.read_csv(args.csv2, low_memory = False, float_precision='high')
 except:
-  print("Failed to read in data from {}. Exiting.".format(args.csv2))
+  print(f"Failed to read in data from {args.csv2}. Exiting.")
   sys.exit(1)
 
 # Check and make sure that the two CSVs are the same size.
@@ -67,14 +67,12 @@ df = df.filter(HEADERS)
 df2 = df2.filter(HEADERS)
 
 # Replace the full filename path with just the file base name for both dataframes
-bnTemp = []
-for col in df['Filename']:
-    bnTemp.append(os.path.basename(col.replace('\\',os.sep)))
+bnTemp = [os.path.basename(col.replace('\\',os.sep)) for col in df['Filename']]
 df['Filename'] = bnTemp
 
-bn2Temp = []
-for col in df2['Filename']:
-    bn2Temp.append(os.path.basename(col.replace('\\',os.sep)))
+bn2Temp = [
+    os.path.basename(col.replace('\\', os.sep)) for col in df2['Filename']
+]
 df2['Filename'] = bn2Temp
 
 # Sort each dataframe on key 'Filename'
@@ -89,10 +87,7 @@ df2 = df2.reset_index(drop=True)
 diff_df = df.compare(df2, keep_equal=False, keep_shape=False, align_axis=1)
 
 # Used to re-add filenames post comparison at the front of the diff dataframe
-fn_cols = []
-for i, row in diff_df.iterrows():
-  fn_cols.append(df.at[i, 'Filename'])
-
+fn_cols = [df.at[i, 'Filename'] for i, row in diff_df.iterrows()]
 diff_df.insert(0, 'Filename', fn_cols)
 
 # Melt the diff so that it looks more like a conventional diff
